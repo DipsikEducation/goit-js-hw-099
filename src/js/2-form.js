@@ -1,33 +1,45 @@
-const formRef = document.querySelector(".feedback-form");
-const emailRef = document.querySelector("[name='email']");
-const messageRef = document.querySelector("[name='message']");
+const formRef = document.querySelector('.feedback-form');
 
-formRef.addEventListener("input", onFormInput);
+const STORAGE_KEY = 'feedback-form-state';
 
-function onFormInput() {
-    const userData = {
-        email: emailRef.value.trim(),
-        message: messageRef.value.trim(),
-    }
-    localStorage.setItem("feedback-form-state", JSON.stringify(userData));
+formRef.addEventListener('input', () => {
+  const email = formRef.elements.email.value.trim();
+  const message = formRef.elements.message.value.trim();
+  const userData = {
+    email,
+    message,
+  };
+  saveToLS(STORAGE_KEY, userData);
+});
+
+function saveToLS(key, value) {
+  const saveValue = JSON.stringify(value);
+  localStorage.setItem(key, saveValue);
 }
 
-if (localStorage.length) {
-    const userDataStorage = JSON.parse(localStorage.getItem("feedback-form-state"));
-    emailRef.value = userDataStorage.email;
-    messageRef.value = userDataStorage.message;
+function getFromLS(key) {
+  const loadData = localStorage.getItem(key);
+  try {
+    return JSON.parse(loadData);
+  } catch (error) {
+    return loadData;
+  }
+}
+const initalizationForm = () => {
+  const userStorageData = getFromLS(STORAGE_KEY) || {};
+
+  formRef.elements.email.value = userStorageData.email ?? '';
+  formRef.elements.message.value = userStorageData.message ?? '';
 };
+initalizationForm();
 
-formRef.addEventListener("submit", onFormSubmit);
-
-function onFormSubmit(event) {
-    event.preventDefault();
-    if (emailRef.value && messageRef.value) {
-    console.log(JSON.parse(localStorage.getItem("feedback-form-state")));
-    localStorage.removeItem("feedback-form-state");
-    emailRef.value = "";
-    messageRef.value = "";
-    } else {
-        alert("All form fields must be filled in");
-    }
-}
+formRef.addEventListener('submit', e => {
+  e.preventDefault();
+  if (
+    formRef.elements.email.value !== '' ||
+    formRef.elements.message.value !== ''
+  )
+    console.log(getFromLS(STORAGE_KEY) ?? '');
+  localStorage.removeItem(STORAGE_KEY);
+  formRef.reset();
+});
